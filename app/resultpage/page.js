@@ -3,9 +3,51 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useErzeugerContext } from '@/context/erzeuger';
 import { useImportDataContext } from '@/context/importdata';
 import { useDownloadExcel } from 'react-export-table-to-excel';
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  LineElement,
+  CategoryScale, // x axis
+  LinearScale, // y axis
+  PointElement,
+  Legend,
+  Filler,
+} from 'chart.js';
 
+ChartJS.register(
+  LineElement,
+  CategoryScale, // x axis
+  LinearScale, // y axis
+  PointElement,
+  Legend,
+  Filler
+);
 var ran = false;
+const graphColors = [
+  '#FF5733',
+  '#33FF57',
+  '#5733FF',
+  '#FF33A1',
+  '#33A1FF',
+  '#A1FF33',
+  '#FF3363',
+  '#3363FF',
+  '#63FF33',
+];
+
 const resultpage = () => {
+  let ColorArr = [];
+  function getRandomColor() {
+    const red = Math.floor(Math.random() * 256);
+    const green = Math.floor(Math.random() * 256);
+    const blue = Math.floor(Math.random() * 256);
+    return `rgb(${red}, ${green}, ${blue})`;
+  }
+
+  // Example usage:
+  const randomColor = getRandomColor();
+  console.log(randomColor);
+
   //excel export
   const tableRef = useRef(null);
   const { onDownload } = useDownloadExcel({
@@ -72,61 +114,107 @@ const resultpage = () => {
   }, []);
 
   return (
-    <div className="">
-      <button
-        onClick={() => {
-          console.log(usageMatrix);
-          console.log(erzeugerValues);
-          onDownload();
-        }}
-      >
-        Debug
-      </button>
-      {usageMatrix[0].length == 0 && (
-        <div class="loading-container">
-          <div class="loading-text">
+    <div className="h-screen flex justify-center items-center">
+      {usageMatrix[0].length == 0 ? (
+        <div className="loading-container">
+          <div className="loading-text">
             <span>Loading</span>
-            <span class="dot1">.</span>
-            <span class="dot2">.</span>
-            <span class="dot3">.</span>
+            <span className="dot1">.</span>
+            <span className="dot2">.</span>
+            <span className="dot3">.</span>
           </div>
         </div>
+      ) : (
+        <div className=" h-screen">
+          <Line
+            className=" chartHeight"
+            data={{
+              labels: Array.from({ length: 365 }, (_, i) => i + 1).map(String), // Assuming a 365-day year
+              datasets: erzeugerValues.map((erzeuger, index) => ({
+                label: `Erzeuger ${index + 1}`,
+                data: usageMatrix
+                  .filter((_, i) => i % 24 === 0) // Sample data for every 24 hours
+                  .map((row) => row[index]?.genutzteleistung || 0),
+                backgroundColor: graphColors[index % 9],
+                tension: 0.4,
+                fill: 'stack',
+              })),
+            }}
+            options={{
+              responsive: true,
+              scales: {
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Tag des Jahres',
+                  },
+                },
+                y: {
+                  stacked: true,
+                  min: 0,
+                  max: Math.floor(Math.max(...importData) * 1.1),
+                  title: {
+                    display: true,
+                    text: 'Genutzteleistung',
+                  },
+                },
+              },
+              plugins: {
+                legend: true,
+                filler: {
+                  propagate: true,
+                },
+              },
+            }}
+          />
+          <button
+            onClick={() => {
+              console.log(usageMatrix);
+              console.log(erzeugerValues);
+              onDownload();
+            }}
+          >
+            Export
+          </button>
+        </div>
       )}
-      <table>
-        <tbody>
-          {usageMatrix.map((row, rowIndex) => (
-            <>
-              {rowIndex == 0 && (
-                <>
-                  {row.map((obj, index) => (
-                    <td>
-                      <th>{'Erzeuger ' + (index + 1)}</th>
-                      <span>{'Leistungssumme: ' + erzeugerSums[index]}</span>
-                    </td>
-                  ))}
-                </>
-              )}
-              <tr key={rowIndex}>
-                {row.map((erzeugerObj, colIndex) => (
-                  <>
-                    <td key={colIndex} className="  border-black border-2 p-2">
-                      {/* Render the properties or values of the ErzeugerObj */}
-                      Max Leistung: {erzeugerObj.maximalleistung}
-                      <br />
-                      Min Leistung: {erzeugerObj.minimalleistung}
-                      <br />
-                      Genutzte Leistung: {erzeugerObj.genutzteleistung}
-                      <br />
-                      Verbleibende Stunden: {erzeugerObj.remstunden}
-                      {/* Add more properties as needed */}
-                    </td>
-                  </>
-                ))}
-              </tr>
-            </>
-          ))}
-        </tbody>
-      </table>
+      {
+        //<table>
+        //<tbody>
+        //{usageMatrix.map((row, rowIndex) => (
+        //<>
+        //{rowIndex == 0 && (
+        //<>
+        //{row.map((obj, index) => (
+        //<td>
+        //<th>{'Erzeuger ' + (index + 1)}</th>
+        //<span>{'Leistungssumme: ' + erzeugerSums[index]}</span>
+        //</td>
+        //))}
+        //</>
+        //)}
+        //<tr key={rowIndex}>
+        //{row.map((erzeugerObj, colIndex) => (
+        //<>
+        //<td key={colIndex} className="  border-black border-2 p-2">
+        //{/* Render the properties or values of the ErzeugerObj */}
+        //Max Leistung: {erzeugerObj.maximalleistung}
+        //<br />
+        //Min Leistung: {erzeugerObj.minimalleistung}
+        //<br />
+        //Genutzte Leistung: {erzeugerObj.genutzteleistung}
+        //<br />
+        //Verbleibende Stunden: {erzeugerObj.remstunden}
+        //{/* Add more properties as needed */}
+        //</td>
+        //</>
+        //))}
+        //</tr>
+        //</>
+        //))}
+        //</tbody>
+        //</table>
+      }
       {/*just for export*/}
       {
         <table ref={tableRef} className=" hidden">

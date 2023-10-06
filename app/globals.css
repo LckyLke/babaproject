@@ -39,7 +39,6 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
 }
 
 .loading-text {
@@ -61,4 +60,7 @@ body {
 .dot1, .dot2, .dot3 {
   animation: typing 1.4s infinite;
   animation-delay: 0.2s;
+}
+.chartHeight {
+  height: 90vh;
 }
