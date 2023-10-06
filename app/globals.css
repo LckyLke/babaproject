@@ -25,3 +25,40 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+.red-button {
+  background-color: red;
+  color: white;
+}
+
+.green-button {
+  background-color: green;
+  color: white;
+}
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.loading-text {
+  font-size: 5rem;
+  color: red;
+  display: flex;
+  align-items: center;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    opacity: 1;
+  }
+  30%, 40% {
+    opacity: 0;
+  }
+}
+
+.dot1, .dot2, .dot3 {
+  animation: typing 1.4s infinite;
+  animation-delay: 0.2s;
+}
