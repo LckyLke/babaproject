@@ -107,10 +107,7 @@ const resultpage = () => {
   };
 
   useEffect(() => {
-    if (ran == false) {
-      calculateUsage();
-      ran = true;
-    }
+    calculateUsage();
   }, []);
 
   return (
@@ -174,7 +171,7 @@ const resultpage = () => {
               onDownload();
             }}
           >
-            Export
+            Daten exportieren
           </button>
         </div>
       )}
