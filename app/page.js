@@ -7,13 +7,15 @@ import Link from 'next/link';
 import { useErzeugerContext } from '@/context/erzeuger';
 import { useImportDataContext } from '@/context/importdata';
 import ErzeugerObj from '@/classes/erzeuger';
+import LineChart from '@/components/LineChart';
 
 export default function Home() {
   const [numDivs, setNumDivs] = useState(0);
   const MAX_VALUE = 99;
   const [erzeugerValues, setErzeugerValues] = useErzeugerContext();
   const [importData, setImportData] = useImportDataContext();
-  const [DataValid, setDataValid] = useState(false);
+  const [showGraph, setShowGraph] = useState(false);
+  const [dataValid, setDataValid] = useState(false);
 
   const handleInputChange = (e) => {
     var value = parseInt(e.target.value);
@@ -59,10 +61,10 @@ export default function Home() {
     };
   };
   return (
-    <div className=" h-screen flex flex-col justify-around">
-      <div className=" flex justify-around items-center">
-        <div className="flex space-x-4">
-          <span>Anzahl Wärmeerzeuger</span>
+    <div className="flex justify-between px-2">
+      <div className=" h-screen flex flex-col justify-around items-start">
+        <div>
+          <div>Anzahl Wärmeerzeuger</div>
           <input
             type="number"
             className="border rounded-md p-2"
@@ -71,16 +73,16 @@ export default function Home() {
             max={99}
             onChange={handleInputChange}
           />
-          <input
-            title="Import"
-            className="bg-blue-500 text-white p-2 rounded-md"
-            type="file"
-            accept=".xlsx, .xls"
-            onChange={(e) => {
-              hanleFileUpload(e);
-            }}
-          />
         </div>
+        <input
+          title="Import"
+          className="bg-blue-500 text-white p-2 rounded-md"
+          type="file"
+          accept=".xlsx, .xls"
+          onChange={(e) => {
+            hanleFileUpload(e);
+          }}
+        />
         <div className="mt-4 h-96 overflow-y-auto border border-gray-300 rounded-md p-4 text-sm">
           {erzeugerValues.map((_, index) => (
             <Erzeuger
@@ -91,19 +93,20 @@ export default function Home() {
             />
           ))}
         </div>
-      </div>
-      <div className="flex justify-center">
-        <Link href="/resultpage" passHref>
+        <div>
           <button
-            className={`${
-              DataValid ? 'green-button' : 'red-button'
-            } p-2 rounded-md`}
-            disabled={!DataValid}
+            className=" border-2 rounded-md border-black p-2"
+            onClick={() => setShowGraph((prev) => !prev)}
           >
-            {DataValid ? 'Go to Result Page' : 'Enter valid data'}
+            Ergebnis Graph ein/-ausblenden
           </button>
-        </Link>
+          <div className=" text-red-800">
+            Bei Änderung an den Daten sollte der Graph aus perfomance Gründen
+            ausgeblendet sein!
+          </div>
+        </div>
       </div>
+      {showGraph && <LineChart />}
     </div>
   );
 }
