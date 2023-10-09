@@ -62,5 +62,7 @@ body {
   animation-delay: 0.2s;
 }
 .chartHeight {
-  height: 90vh;
+  height: 70vh;
+}
+.linechart {
 }

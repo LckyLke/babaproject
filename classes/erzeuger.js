@@ -46,17 +46,14 @@ class ErzeugerObj {
     this.remstunden = this.remstunden - 1;
   }
   setGenutzteLeistung(val) {
-    if (
-      val !== 0 &&
-      (val < this.minimalleistung || val > this.maximalleistung)
-    ) {
-      throw new Error('dieser Wert liegt außerhalb des Leistungsbereich!');
-    }
     this.genutzteleistung = val;
   }
 
   available() {
     return this.remstunden > 0;
+  }
+  resetRemHours() {
+    this.remstunden = this.benutzungsstunden;
   }
 
   set(name, val) {
