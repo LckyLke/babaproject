@@ -12,6 +12,7 @@ import {
   PointElement,
   Legend,
   Filler,
+  Title,
 } from 'chart.js';
 import Erzeuger from './Erzeuger';
 
@@ -21,7 +22,8 @@ ChartJS.register(
   LinearScale, // y axis
   PointElement,
   Legend,
-  Filler
+  Filler,
+  Title
 );
 var ran = false;
 const graphColors = [
@@ -160,7 +162,7 @@ const LineChart = () => {
                 x: {
                   title: {
                     display: true,
-                    text: 'Tag des Jahres',
+                    text: 'Tage',
                   },
                 },
                 y: {
@@ -169,7 +171,7 @@ const LineChart = () => {
                   max: Math.floor(Math.max(...importData) * 1.1),
                   title: {
                     display: true,
-                    text: 'Genutzteleistung',
+                    text: 'Leistung',
                   },
                 },
               },
@@ -177,6 +179,13 @@ const LineChart = () => {
                 legend: true,
                 filler: {
                   propagate: true,
+                },
+                title: {
+                  display: true,
+                  text: 'Geordnete Jahresdauerlinie Wärme',
+                  font: {
+                    size: 16,
+                  },
                 },
               },
             }}

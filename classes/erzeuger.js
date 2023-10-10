@@ -9,9 +9,9 @@ class ErzeugerObj {
     ) {
       this.maximalleistung = 0;
       this.minimalleistung = 0;
-      this.benutzungsstunden = 0;
+      this.benutzungsstunden = 8760;
       //verbleibende Stunden bei Nutzung
-      this.remstunden = 0;
+      this.remstunden = 8760;
       //tatsächlich genutzte Leistung (cond: minimalleistung =< genutzteleistung =< maximalleistung)
       this.genutzteleistung = 0;
     } else {
