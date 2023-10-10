@@ -135,15 +135,24 @@ const LineChart = () => {
             className=" lineChart chartHeight"
             data={{
               labels: Array.from({ length: 365 }, (_, i) => i + 1).map(String), // Assuming a 365-day year
-              datasets: erzeugerValues.map((erzeuger, index) => ({
-                label: `Erzeuger ${index + 1}`,
-                data: usageMatrix
-                  .filter((_, i) => i % 24 === 0) // Sample data for every 24 hours
-                  .map((row) => row[index]?.genutzteleistung || 0),
-                backgroundColor: graphColors[index % 9],
-                tension: 0.4,
-                fill: 'stack',
-              })),
+              datasets: [
+                ...erzeugerValues.map((erzeuger, index) => ({
+                  label: `Erzeuger ${index + 1}`,
+                  data: usageMatrix
+                    .filter((_, i) => i % 24 === 0) // Sample data for every 24 hours
+                    .map((row) => row[index]?.genutzteleistung || 0),
+                  backgroundColor: graphColors[(index + 1) % 8],
+                  tension: 0.4,
+                  fill: 'stack',
+                })),
+                {
+                  label: 'Bedarfslastgang',
+                  data: importData.filter((_, i) => i % 24 === 0), // Sample data for every 24 hours
+                  backgroundColor: graphColors[0],
+                  tension: 0.4,
+                  stack: 'bedarf',
+                },
+              ],
             }}
             options={{
               responsive: true,
@@ -173,13 +182,14 @@ const LineChart = () => {
             }}
           />
           <button
+            className=" border-2 rounded-md border-black p-2"
             onClick={() => {
               console.log(usageMatrix);
               console.log(erzeugerValues);
               onDownload();
             }}
           >
-            Daten exportieren
+            Excel export
           </button>
         </div>
       )}
