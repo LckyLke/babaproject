@@ -12,13 +12,9 @@ function Erzeuger({ num, values, setValues }) {
 
   return (
     <div key={num} className="mb-2 border-2 border-black p-1 rounded-md">
-      <span>Erzeuger {num}</span>
-      <div className="flex justify-around">
-        <span>Maximale Leistung</span>
-        <span>Minimale Leistung</span>
-        <span>Benutzungsstunden</span>
-      </div>
+      <div className=" border-b-2 border-black">Erzeuger {num}</div>
       <div>
+        <div>Max Leistung</div>
         <input
           placeholder="Maximalleistung in KW"
           type="number"
@@ -26,6 +22,7 @@ function Erzeuger({ num, values, setValues }) {
           value={values[num - 1].maximalleistung}
           onChange={(e) => handleInputChange(e, 'max')}
         />
+        <div>Min Leistung</div>
         <input
           placeholder="Minimalleistung in KW"
           type="number"
@@ -33,6 +30,7 @@ function Erzeuger({ num, values, setValues }) {
           value={values[num - 1].minimalleistung}
           onChange={(e) => handleInputChange(e, 'min')}
         />
+        <div>Benutzungsstunden</div>
         <input
           placeholder="Maximal Benutzungsstunden"
           type="number"

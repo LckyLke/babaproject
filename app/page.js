@@ -74,15 +74,18 @@ export default function Home() {
             onChange={handleInputChange}
           />
         </div>
-        <input
-          title="Import"
-          className="bg-blue-500 text-white p-2 rounded-md"
-          type="file"
-          accept=".xlsx, .xls"
-          onChange={(e) => {
-            hanleFileUpload(e);
-          }}
-        />
+        <div>
+          <div>Lastgang einlesen:</div>
+          <input
+            id="filePicker"
+            className="bg-blue-500 text-white p-2 rounded-md"
+            type="file"
+            accept=".xlsx, .xls"
+            onChange={(e) => {
+              hanleFileUpload(e);
+            }}
+          />
+        </div>
         <div className="mt-4 h-96 overflow-y-auto border border-gray-300 rounded-md p-4 text-sm">
           {erzeugerValues.map((_, index) => (
             <Erzeuger
@@ -101,8 +104,7 @@ export default function Home() {
             Ergebnis Graph ein/-ausblenden
           </button>
           <div className=" text-red-800">
-            Bei Änderung an den Daten sollte der Graph aus perfomance Gründen
-            ausgeblendet sein!
+            Bei Performance Problemen: Graph beim ändern von Daten ausblenden!
           </div>
         </div>
       </div>
