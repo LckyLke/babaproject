@@ -8,6 +8,7 @@ import { useErzeugerContext } from '@/context/erzeuger';
 import { useImportDataContext } from '@/context/importdata';
 import ErzeugerObj from '@/classes/erzeuger';
 import LineChart from '@/components/LineChart';
+import Footer from '@/components/Footer';
 
 export default function Home() {
   const [numDivs, setNumDivs] = useState(0);
@@ -61,54 +62,57 @@ export default function Home() {
     };
   };
   return (
-    <div className="flex justify-between px-2">
-      <div className=" h-screen flex flex-col justify-around items-start">
-        <div>
-          <div>Anzahl Wärmeerzeuger</div>
-          <input
-            type="number"
-            className="border rounded-md p-2"
-            placeholder="Enter a number"
-            value={numDivs}
-            max={99}
-            onChange={handleInputChange}
-          />
-        </div>
-        <div>
-          <div>Lastgang einlesen:</div>
-          <input
-            id="filePicker"
-            className="bg-blue-500 text-white p-2 rounded-md"
-            type="file"
-            accept=".xlsx, .xls"
-            onChange={(e) => {
-              hanleFileUpload(e);
-            }}
-          />
-        </div>
-        <div className="mt-4 h-96 overflow-y-auto border border-gray-300 rounded-md p-4 text-sm">
-          {erzeugerValues.map((_, index) => (
-            <Erzeuger
-              key={index}
-              num={index + 1}
-              values={erzeugerValues}
-              setValues={setErzeugerValues}
+    <div>
+      <div className="flex justify-between px-2">
+        <div className=" h-screen flex flex-col justify-around items-start">
+          <div>
+            <div>Anzahl Wärmeerzeuger</div>
+            <input
+              type="number"
+              className="border rounded-md p-2"
+              placeholder="Enter a number"
+              value={numDivs}
+              max={99}
+              onChange={handleInputChange}
             />
-          ))}
-        </div>
-        <div>
-          <button
-            className=" border-2 rounded-md border-black p-2"
-            onClick={() => setShowGraph((prev) => !prev)}
-          >
-            Ergebnis Graph ein/-ausblenden
-          </button>
-          <div className=" text-red-800">
-            Bei Performance Problemen: Graph beim ändern von Daten ausblenden!
+          </div>
+          <div>
+            <div>Lastgang einlesen:</div>
+            <input
+              id="filePicker"
+              className="bg-blue-500 text-white p-2 rounded-md"
+              type="file"
+              accept=".xlsx, .xls"
+              onChange={(e) => {
+                hanleFileUpload(e);
+              }}
+            />
+          </div>
+          <div className="mt-4 h-96 overflow-y-auto border border-gray-300 rounded-md p-4 text-sm">
+            {erzeugerValues.map((_, index) => (
+              <Erzeuger
+                key={index}
+                num={index + 1}
+                values={erzeugerValues}
+                setValues={setErzeugerValues}
+              />
+            ))}
+          </div>
+          <div>
+            <button
+              className=" border-2 rounded-md border-black p-2"
+              onClick={() => setShowGraph((prev) => !prev)}
+            >
+              Ergebnis Graph ein/-ausblenden
+            </button>
+            <div className=" text-red-800">
+              Bei Performance Problemen: Graph beim ändern von Daten ausblenden!
+            </div>
           </div>
         </div>
+        {showGraph && <LineChart />}
       </div>
-      {showGraph && <LineChart />}
+      <Footer />
     </div>
   );
 }
