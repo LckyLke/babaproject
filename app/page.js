@@ -21,9 +21,21 @@ export default function Home() {
   const [usageMatrix, setUsageMatrix] = useState([]);
 
   const handleInputChange = (e) => {
-    var value = parseInt(e.target.value);
+    const inputValue = e.target.value;
+    if (inputValue === '') {
+      setNumDivs(0);
+      setErzeugerValues([]);
+      return;
+    }
+    
+    var value = parseInt(inputValue);
+    if (isNaN(value)) return;
+    
     if (value >= MAX_VALUE) {
       value = MAX_VALUE;
+    }
+    if (value < 0) {
+      value = 0;
     }
     setNumDivs(value);
     const newErzeugerValues = Array.from(
@@ -64,9 +76,14 @@ export default function Home() {
           const benutzungsstunden = parseFloat(erzeuger.benutzungsstunden) || 0;
 
           let genutzteleistung = 0;
-          if (remainingDemand > 0 && benutzungsstunden > 0) {
-            genutzteleistung = Math.min(maxLeistung, Math.max(minLeistung, remainingDemand));
-            remainingDemand -= genutzteleistung;
+          if (remainingDemand > minLeistung && benutzungsstunden > 0) {
+            // Only use the generator if remaining demand is higher than minimum power
+            genutzteleistung = Math.min(maxLeistung, remainingDemand);
+            if (genutzteleistung < minLeistung) {
+              genutzteleistung = 0; // Don't use generator if we can't meet minimum power requirement
+            } else {
+              remainingDemand -= genutzteleistung;
+            }
           }
 
           row.push({ genutzteleistung });
@@ -138,14 +155,43 @@ export default function Home() {
               <div className="modern-card shrink-0">
                 <div className="input-container">
                   <label className="input-label">Anzahl Wärmeerzeuger</label>
-                  <input
-                    type="number"
-                    className="dark-mode-input w-full"
-                    placeholder="Enter a number"
-                    value={numDivs}
-                    max={99}
-                    onChange={handleInputChange}
-                  />
+                  <div className="input-spinner-container">
+                    <input
+                      type="number"
+                      className="dark-mode-input with-spinner"
+                      placeholder="Enter a number"
+                      value={numDivs}
+                      min="0"
+                      max={MAX_VALUE}
+                      onChange={handleInputChange}
+                    />
+                    <div className="input-spinner-buttons">
+                      <div 
+                        className="spinner-button spinner-button-up h-1/2" 
+                        onClick={() => {
+                          if (numDivs < MAX_VALUE) {
+                            handleInputChange({ target: { value: numDivs + 1 } });
+                          }
+                        }}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        </svg>
+                      </div>
+                      <div 
+                        className="spinner-button spinner-button-down h-1/2" 
+                        onClick={() => {
+                          if (numDivs > 0) {
+                            handleInputChange({ target: { value: numDivs - 1 } });
+                          }
+                        }}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 

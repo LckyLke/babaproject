@@ -2,14 +2,26 @@ import React from 'react';
 
 function Erzeuger({ num, values, setValues }) {
   const handleInputChange = (e, field) => {
-    const newValue = parseInt(e.target.value);
-    if (!isNaN(newValue)) {
+    const inputValue = e.target.value;
+    if (inputValue === '') {
       setValues((prevValues) => {
         const updatedValues = [...prevValues];
-        updatedValues[num - 1].set(field, newValue);
+        updatedValues[num - 1].set(field, 0);
         return updatedValues;
       });
+      return;
     }
+    
+    const newValue = parseInt(inputValue);
+    if (isNaN(newValue)) return;
+    
+    if (newValue < 0) return;
+    
+    setValues((prevValues) => {
+      const updatedValues = [...prevValues];
+      updatedValues[num - 1].set(field, newValue);
+      return updatedValues;
+    });
   };
 
   const handleSpinnerClick = (field, increment) => {
