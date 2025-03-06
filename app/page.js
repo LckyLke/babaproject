@@ -257,34 +257,36 @@ export default function Home() {
 
             {showGraph && dataValid && importData.length > 0 && (
               <div className="lg:w-1/5 flex flex-col gap-3">
-                <div className="modern-card py-2">
+                <div className="modern-card py-2 shrink-0">
                   <h3 className="text-base font-medium mb-1">Gesamter Bedarfslastgang</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
                     Summe: {Math.round(importData.reduce((a, b) => a + b, 0)).toLocaleString('de-DE')} kWh
                   </p>
                 </div>
 
-                {erzeugerValues.map((erzeuger, index) => {
-                  const erzeugerSum = erzeugerValues.reduce((sum, _, i) => {
-                    return sum + (usageMatrix.reduce((rowSum, row) => rowSum + (row[i]?.genutzteleistung || 0), 0) || 0);
-                  }, 0);
-                  const currentErzeugerSum = usageMatrix.reduce((sum, row) => sum + (row[index]?.genutzteleistung || 0), 0);
-                  return (
-                    <div key={index} className="modern-card py-2">
-                      <h3 className="text-base font-medium mb-1">Erzeuger {index + 1}</h3>
-                      <div className="space-y-1">
-                        <p className="text-sm text-slate-600 dark:text-slate-300">
-                          Arbeit: {Math.round(currentErzeugerSum || 0).toLocaleString('de-DE')} kWh
-                        </p>
-                        <p className="text-sm text-slate-600 dark:text-slate-300">
-                          Relativer Anteil: {((currentErzeugerSum || 0) / (importData.reduce((a, b) => a + b, 0) || 1) * 100).toFixed(2)}%
-                        </p>
+                <div className="flex-1 overflow-y-auto min-h-0 pr-2 flex flex-col gap-3">
+                  {erzeugerValues.map((erzeuger, index) => {
+                    const erzeugerSum = erzeugerValues.reduce((sum, _, i) => {
+                      return sum + (usageMatrix.reduce((rowSum, row) => rowSum + (row[i]?.genutzteleistung || 0), 0) || 0);
+                    }, 0);
+                    const currentErzeugerSum = usageMatrix.reduce((sum, row) => sum + (row[index]?.genutzteleistung || 0), 0);
+                    return (
+                      <div key={index} className="modern-card py-2">
+                        <h3 className="text-base font-medium mb-1">Erzeuger {index + 1}</h3>
+                        <div className="space-y-1">
+                          <p className="text-sm text-slate-600 dark:text-slate-300">
+                            Arbeit: {Math.round(currentErzeugerSum || 0).toLocaleString('de-DE')} kWh
+                          </p>
+                          <p className="text-sm text-slate-600 dark:text-slate-300">
+                            Relativer Anteil: {((currentErzeugerSum || 0) / (importData.reduce((a, b) => a + b, 0) || 1) * 100).toFixed(2)}%
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
 
-                <div className="modern-card py-2">
+                <div className="modern-card py-2 shrink-0">
                   <button
                     className="modern-button w-full text-sm"
                     onClick={() => {
