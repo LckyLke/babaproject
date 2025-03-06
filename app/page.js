@@ -8,6 +8,7 @@ import { useErzeugerContext } from '@/context/erzeuger';
 import { useImportDataContext } from '@/context/importdata';
 import ErzeugerObj from '@/classes/erzeuger';
 import LineChart from '@/components/LineChart';
+import PieChart from '@/components/PieChart';
 import Footer from '@/components/Footer';
 
 export default function Home() {
@@ -248,10 +249,15 @@ export default function Home() {
             </div>
 
             {showGraph && (
-              <div className="lg:w-3/5 min-h-0 flex flex-col">
+              <div className="lg:w-3/5 min-h-0 flex flex-col gap-4">
                 <div className="modern-card flex-1 overflow-hidden">
                   <LineChart usageMatrix={usageMatrix} />
                 </div>
+                {usageMatrix.length > 0 && importData.length > 0 && (
+                  <div className="modern-card h-96">
+                    <PieChart usageMatrix={usageMatrix} importData={importData} />
+                  </div>
+                )}
               </div>
             )}
 
