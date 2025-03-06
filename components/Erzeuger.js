@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 function Erzeuger({ num, values, setValues }) {
   const handleInputChange = (e, field) => {
@@ -27,7 +28,12 @@ function Erzeuger({ num, values, setValues }) {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+    <motion.div 
+      className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
       <h3 className="text-base font-medium mb-3 pb-2 border-b border-slate-200 dark:border-slate-700">
         Erzeuger {num}
       </h3>
@@ -45,12 +51,18 @@ function Erzeuger({ num, values, setValues }) {
               onChange={(e) => handleInputChange(e, 'max')}
             />
             <div className="input-spinner-buttons">
-              <div className="spinner-button spinner-button-up h-1/2" onClick={() => handleSpinnerClick('max', true)}>
+              <div 
+                className="spinner-button spinner-button-up h-1/2" 
+                onClick={() => handleSpinnerClick('max', true)}
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                 </svg>
               </div>
-              <div className="spinner-button spinner-button-down h-1/2" onClick={() => handleSpinnerClick('max', false)}>
+              <div 
+                className="spinner-button spinner-button-down h-1/2" 
+                onClick={() => handleSpinnerClick('max', false)}
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -72,12 +84,18 @@ function Erzeuger({ num, values, setValues }) {
               onChange={(e) => handleInputChange(e, 'min')}
             />
             <div className="input-spinner-buttons">
-              <div className="spinner-button spinner-button-up h-1/2" onClick={() => handleSpinnerClick('min', true)}>
+              <div 
+                className="spinner-button spinner-button-up h-1/2" 
+                onClick={() => handleSpinnerClick('min', true)}
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                 </svg>
               </div>
-              <div className="spinner-button spinner-button-down h-1/2" onClick={() => handleSpinnerClick('min', false)}>
+              <div 
+                className="spinner-button spinner-button-down h-1/2" 
+                onClick={() => handleSpinnerClick('min', false)}
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -99,12 +117,18 @@ function Erzeuger({ num, values, setValues }) {
               onChange={(e) => handleInputChange(e, 'stunden')}
             />
             <div className="input-spinner-buttons">
-              <div className="spinner-button spinner-button-up h-1/2" onClick={() => handleSpinnerClick('stunden', true)}>
+              <div 
+                className="spinner-button spinner-button-up h-1/2" 
+                onClick={() => handleSpinnerClick('stunden', true)}
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                 </svg>
               </div>
-              <div className="spinner-button spinner-button-down h-1/2" onClick={() => handleSpinnerClick('stunden', false)}>
+              <div 
+                className="spinner-button spinner-button-down h-1/2" 
+                onClick={() => handleSpinnerClick('stunden', false)}
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -113,7 +137,7 @@ function Erzeuger({ num, values, setValues }) {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
