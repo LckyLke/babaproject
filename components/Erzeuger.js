@@ -3,34 +3,24 @@ import React from 'react';
 function Erzeuger({ num, values, setValues }) {
   const handleInputChange = (e, field) => {
     const inputValue = e.target.value;
-    if (inputValue === '') {
+    
+    // Allow empty field or valid numbers only
+    if (inputValue === '' || /^\d*\.?\d*$/.test(inputValue)) {
       setValues((prevValues) => {
         const updatedValues = [...prevValues];
-        updatedValues[num - 1].set(field, 0);
+        updatedValues[num - 1].set(field, inputValue === '' ? '' : inputValue);
         return updatedValues;
       });
-      return;
     }
-    
-    const newValue = parseInt(inputValue);
-    if (isNaN(newValue)) return;
-    
-    if (newValue < 0) return;
-    
-    setValues((prevValues) => {
-      const updatedValues = [...prevValues];
-      updatedValues[num - 1].set(field, newValue);
-      return updatedValues;
-    });
   };
 
   const handleSpinnerClick = (field, increment) => {
-    const currentValue = values[num - 1][field === 'max' ? 'maximalleistung' : field === 'min' ? 'minimalleistung' : 'benutzungsstunden'] || 0;
+    const currentValue = parseFloat(values[num - 1][field === 'max' ? 'maximalleistung' : field === 'min' ? 'minimalleistung' : 'benutzungsstunden']) || 0;
     const newValue = increment ? currentValue + 1 : currentValue - 1;
     if (newValue >= 0) {
       setValues((prevValues) => {
         const updatedValues = [...prevValues];
-        updatedValues[num - 1].set(field, newValue);
+        updatedValues[num - 1].set(field, newValue.toString());
         return updatedValues;
       });
     }
@@ -48,6 +38,8 @@ function Erzeuger({ num, values, setValues }) {
             <input
               placeholder="Maximalleistung in KW"
               type="number"
+              min="0"
+              step="any"
               className="dark-mode-input with-spinner"
               value={values[num - 1].maximalleistung}
               onChange={(e) => handleInputChange(e, 'max')}
@@ -73,6 +65,8 @@ function Erzeuger({ num, values, setValues }) {
             <input
               placeholder="Minimalleistung in KW"
               type="number"
+              min="0"
+              step="any"
               className="dark-mode-input with-spinner"
               value={values[num - 1].minimalleistung}
               onChange={(e) => handleInputChange(e, 'min')}
@@ -98,6 +92,8 @@ function Erzeuger({ num, values, setValues }) {
             <input
               placeholder="Maximal Benutzungsstunden"
               type="number"
+              min="0"
+              step="any"
               className="dark-mode-input with-spinner"
               value={values[num - 1].benutzungsstunden}
               onChange={(e) => handleInputChange(e, 'stunden')}

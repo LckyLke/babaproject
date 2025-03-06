@@ -81,6 +81,18 @@ export default function LineChart({ usageMatrix }) {
               borderColor: graphColors[(index + 1) % 8],
               tension: 0.4,
               fill: 'stack',
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const dataPoint = usageMatrix
+                      .filter((_, i) => i % 24 === 0)[context.dataIndex][index];
+                    return [
+                      `Erzeuger ${index + 1}: ${context.raw.toFixed(2)} kW`,
+                      `Verbleibende Stunden: ${dataPoint?.remstunden || 0}`
+                    ];
+                  }
+                }
+              }
             })),
             {
               label: 'Bedarfslastgang',

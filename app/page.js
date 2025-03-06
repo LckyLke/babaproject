@@ -50,9 +50,10 @@ export default function Home() {
       erzeugerValues.length > 0 &&
       erzeugerValues.every(
         (erzeuger) =>
-          erzeuger.maximalleistung !== '' &&
-          erzeuger.minimalleistung !== '' &&
-          erzeuger.benutzungsstunden !== ''
+          // Consider empty fields as valid (they'll be treated as 0)
+          (erzeuger.maximalleistung === '' || !isNaN(parseFloat(erzeuger.maximalleistung))) &&
+          (erzeuger.minimalleistung === '' || !isNaN(parseFloat(erzeuger.minimalleistung))) &&
+          (erzeuger.benutzungsstunden === '' || !isNaN(parseFloat(erzeuger.benutzungsstunden)))
       );
 
     // Allow for 8760 or 8761 values (to accommodate the A1 cell)
@@ -63,30 +64,41 @@ export default function Home() {
 
   useEffect(() => {
     if (importData.length > 0 && erzeugerValues.length > 0) {
+      // Reset remaining hours for all erzeugers before calculation
+      const workingErzeugers = erzeugerValues.map(erzeuger => {
+        const copy = erzeuger.copy();
+        copy.resetRemHours();
+        return copy;
+      });
+
       const matrix = [];
       for (let hour = 0; hour < importData.length; hour++) {
         const row = [];
         const demand = importData[hour];
         let remainingDemand = demand;
 
-        for (let i = 0; i < erzeugerValues.length; i++) {
-          const erzeuger = erzeugerValues[i];
-          const maxLeistung = parseFloat(erzeuger.maximalleistung) || 0;
-          const minLeistung = parseFloat(erzeuger.minimalleistung) || 0;
-          const benutzungsstunden = parseFloat(erzeuger.benutzungsstunden) || 0;
+        for (let i = 0; i < workingErzeugers.length; i++) {
+          const erzeuger = workingErzeugers[i];
+          const maxLeistung = erzeuger.maximalleistung === '' ? 0 : parseFloat(erzeuger.maximalleistung);
+          const minLeistung = erzeuger.minimalleistung === '' ? 0 : parseFloat(erzeuger.minimalleistung);
+          const remstunden = erzeuger.remstunden === '' ? 0 : parseFloat(erzeuger.remstunden);
 
           let genutzteleistung = 0;
-          if (remainingDemand > minLeistung && benutzungsstunden > 0) {
-            // Only use the generator if remaining demand is higher than minimum power
+          if (remainingDemand > minLeistung && remstunden > 0) {
+            // Only use the generator if remaining demand is higher than minimum power and we have hours left
             genutzteleistung = Math.min(maxLeistung, remainingDemand);
             if (genutzteleistung < minLeistung) {
               genutzteleistung = 0; // Don't use generator if we can't meet minimum power requirement
             } else {
               remainingDemand -= genutzteleistung;
+              erzeuger.decreaseRemStunden(); // Decrease remaining hours when generator is used
             }
           }
 
-          row.push({ genutzteleistung });
+          row.push({ 
+            genutzteleistung,
+            remstunden: erzeuger.remstunden // Store remaining hours in the matrix for reference
+          });
         }
         matrix.push(row);
       }

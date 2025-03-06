@@ -7,11 +7,11 @@ class ErzeugerObj {
       remstunden == undefined &&
       genutzteleistung == undefined
     ) {
-      this.maximalleistung = 0;
-      this.minimalleistung = 0;
-      this.benutzungsstunden = 8760;
+      this.maximalleistung = '0';
+      this.minimalleistung = '0';
+      this.benutzungsstunden = '8760';
       //verbleibende Stunden bei Nutzung
-      this.remstunden = 8760;
+      this.remstunden = '8760';
       //tatsächlich genutzte Leistung (cond: minimalleistung =< genutzteleistung =< maximalleistung)
       this.genutzteleistung = 0;
     } else {
@@ -43,15 +43,29 @@ class ErzeugerObj {
     this.remstunden = val;
   }
   decreaseRemStunden() {
-    this.remstunden = this.remstunden - 1;
+    const current = parseFloat(this.remstunden) || 0;
+    this.remstunden = (current - 1).toString();
   }
   setGenutzteLeistung(val) {
     this.genutzteleistung = val;
   }
 
-  available() {
-    return this.remstunden > 0;
+  getMaximalLeistung() {
+    return parseFloat(this.maximalleistung) || 0;
   }
+
+  getMinimalLeistung() {
+    return parseFloat(this.minimalleistung) || 0;
+  }
+
+  getBenutzungsStunden() {
+    return parseFloat(this.benutzungsstunden) || 0;
+  }
+
+  available() {
+    return (parseFloat(this.remstunden) || 0) > 0;
+  }
+  
   resetRemHours() {
     this.remstunden = this.benutzungsstunden;
   }
