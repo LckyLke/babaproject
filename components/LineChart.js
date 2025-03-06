@@ -15,6 +15,7 @@ import {
   Title,
 } from 'chart.js';
 import Erzeuger from './Erzeuger';
+import XLSX from 'xlsx';
 
 ChartJS.register(
   LineElement,
@@ -38,239 +39,191 @@ const graphColors = [
   '#63FF33',
 ];
 
-const LineChart = () => {
-  let ColorArr = [];
-  function getRandomColor() {
-    const red = Math.floor(Math.random() * 256);
-    const green = Math.floor(Math.random() * 256);
-    const blue = Math.floor(Math.random() * 256);
-    return `rgb(${red}, ${green}, ${blue})`;
+export default function LineChart({ usageMatrix }) {
+  const [erzeugerValues] = useErzeugerContext();
+  const [importData] = useImportDataContext();
+  const tableRef = useRef(null);
+
+  const onDownload = () => {
+    const wb = XLSX.utils.table_to_book(tableRef.current);
+    XLSX.writeFile(wb, 'Erzeuger_Daten.xlsx');
+  };
+
+  if (!importData.length) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <svg className="w-16 h-16 mx-auto text-slate-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          <h3 className="text-xl font-medium mb-2">Keine Daten verfügbar</h3>
+          <p className="text-slate-600 dark:text-slate-400">
+            Bitte laden Sie zuerst einen Lastgang hoch und fügen Sie mindestens einen Erzeuger hinzu, um die Jahresdauerlinie zu sehen.
+          </p>
+        </div>
+      </div>
+    );
   }
 
-  // Example usage:
-  const randomColor = getRandomColor();
-  console.log(randomColor);
-
-  //excel export
-  const tableRef = useRef(null);
-  const { onDownload } = useDownloadExcel({
-    currentTableRef: tableRef.current,
-    filename: 'test',
-    sheet: 'test',
-  });
-  //excel export end
-  const [erzeugerValues, setErzeugerValues] = useErzeugerContext();
-  const [importData, setImportData] = useImportDataContext();
-  const [usageMatrix, setUsageMatrix] = useState([[]]);
-  const [erzeugerSums, setErzeugerSums] = useState([]);
-  const calculateUsage = () => {
-    const generatedMatrix = Array.from({ length: 8760 }, () => []);
-    console.log('cal usage ran');
-    for (let i = 0; i < importData.length; i++) {
-      const kw = importData[i];
-      let curKwSum = 0;
-      for (let y = 0; y < erzeugerValues.length; y++) {
-        const erzeuger = erzeugerValues[y].copy();
-        const erzeugerOj = erzeugerValues[y];
-        //wenn erzeuger noch studen hat
-        //+ die min leistung des erzeugers übersteigt nicht die fehlenden kw.
-        //+ kws noch nicht erreicht
-        const curDiff = kw - curKwSum;
-        if (
-          erzeugerOj.available() &&
-          erzeuger.minimalleistung < curDiff &&
-          curKwSum < kw
-        ) {
-          //erzeuger wird benutzt
-          erzeugerOj.decreaseRemStunden();
-          if (curDiff >= erzeuger.maximalleistung) {
-            erzeuger.setGenutzteLeistung(erzeuger.maximalleistung);
-          } else {
-            erzeuger.setGenutzteLeistung(curDiff);
-          }
-          curKwSum += erzeuger.genutzteleistung;
-          console.log(erzeuger);
-          generatedMatrix[i].push(erzeuger);
-        } else {
-          erzeuger.setGenutzteLeistung(0);
-          generatedMatrix[i].push(erzeuger);
-        }
-      }
-    }
-    console.log(generatedMatrix);
-    let newSums = [];
-    for (let p = 0; p < erzeugerValues.length; p++) {
-      let curSum = 0;
-      for (let x = 0; x < generatedMatrix.length; x++) {
-        curSum += generatedMatrix[x][p]?.genutzteleistung;
-      }
-      newSums.push(curSum);
-    }
-    setErzeugerSums(newSums);
-    setUsageMatrix(generatedMatrix);
-    resetRemHours();
-  };
-
-  useEffect(() => {
-    calculateUsage();
-  }, [importData, erzeugerValues]);
-  const resetRemHours = () => {
-    for (let y = 0; y < erzeugerValues.length; y++) {
-      erzeugerValues[y].resetRemHours();
-    }
-  };
-
   return (
-    <div className="h-screen flex justify-center items-center">
-      {usageMatrix[0].length == 0 ? (
-        <div className="loading-container">
-          <div className="loading-text">
-            <span>Loading</span>
-            <span className="dot1">.</span>
-            <span className="dot2">.</span>
-            <span className="dot3">.</span>
-          </div>
-        </div>
-      ) : (
-        <div className=" ">
-          <Line
-            className=" lineChart chartHeight"
-            data={{
-              labels: Array.from({ length: 365 }, (_, i) => i + 1).map(String), // Assuming a 365-day year
-              datasets: [
-                ...erzeugerValues.map((erzeuger, index) => ({
-                  label: `Erzeuger ${index + 1}`,
-                  data: usageMatrix
-                    .filter((_, i) => i % 24 === 0) // Sample data for every 24 hours
-                    .map((row) => row[index]?.genutzteleistung || 0),
-                  backgroundColor: graphColors[(index + 1) % 8],
-                  tension: 0.4,
-                  fill: 'stack',
-                })),
-                {
-                  label: 'Bedarfslastgang',
-                  data: importData.filter((_, i) => i % 24 === 0), // Sample data for every 24 hours
-                  backgroundColor: graphColors[0],
-                  tension: 0.4,
-                  stack: 'bedarf',
-                },
-              ],
-            }}
-            options={{
-              responsive: true,
-              scales: {
-                x: {
-                  title: {
-                    display: true,
-                    text: 'Tage',
-                  },
-                },
-                y: {
-                  stacked: true,
-                  min: 0,
-                  max: Math.floor(Math.max(...importData) * 1.1),
-                  title: {
-                    display: true,
-                    text: 'Leistung',
-                  },
+    <div className="w-full h-full">
+      <Line
+        className="lineChart"
+        data={{
+          labels: Array.from({ length: 365 }, (_, i) => i + 1).map(String),
+          datasets: [
+            ...erzeugerValues.map((erzeuger, index) => ({
+              label: `Erzeuger ${index + 1}`,
+              data: usageMatrix
+                .filter((_, i) => i % 24 === 0)
+                .map((row) => row[index]?.genutzteleistung || 0),
+              backgroundColor: graphColors[(index + 1) % 8],
+              borderColor: graphColors[(index + 1) % 8],
+              tension: 0.4,
+              fill: 'stack',
+            })),
+            {
+              label: 'Bedarfslastgang',
+              data: importData.filter((_, i) => i % 24 === 0),
+              backgroundColor: graphColors[0],
+              borderColor: graphColors[0],
+              tension: 0.4,
+              stack: 'bedarf',
+            },
+          ],
+        }}
+        options={{
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 1.75,
+          devicePixelRatio: 2,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Tage',
+                color: 'currentColor',
+                font: {
+                  size: 14,
+                  weight: 'medium',
                 },
               },
-              plugins: {
-                legend: true,
-                filler: {
-                  propagate: true,
-                },
-                title: {
-                  display: true,
-                  text: 'Geordnete Jahresdauerlinie Wärme',
-                  font: {
-                    size: 16,
-                  },
+              grid: {
+                color: 'rgba(var(--border-color), 0.1)',
+              },
+              ticks: {
+                color: 'currentColor',
+              },
+            },
+            y: {
+              stacked: true,
+              min: 0,
+              max: Math.floor(Math.max(...importData) * 1.1),
+              title: {
+                display: true,
+                text: 'Leistung',
+                color: 'currentColor',
+                font: {
+                  size: 14,
+                  weight: 'medium',
                 },
               },
-            }}
-          />
-          <button
-            className=" border-2 rounded-md border-black p-2"
-            onClick={() => {
-              console.log(usageMatrix);
-              console.log(erzeugerValues);
-              onDownload();
-            }}
-          >
-            Excel export
-          </button>
-        </div>
-      )}
-      {
-        //<table>
-        //<tbody>
-        //{usageMatrix.map((row, rowIndex) => (
-        //<>
-        //{rowIndex == 0 && (
-        //<>
-        //{row.map((obj, index) => (
-        //<td>
-        //<th>{'Erzeuger ' + (index + 1)}</th>
-        //<span>{'Leistungssumme: ' + erzeugerSums[index]}</span>
-        //</td>
-        //))}
-        //</>
-        //)}
-        //<tr key={rowIndex}>
-        //{row.map((erzeugerObj, colIndex) => (
-        //<>
-        //<td key={colIndex} className="  border-black border-2 p-2">
-        //{/* Render the properties or values of the ErzeugerObj */}
-        //Max Leistung: {erzeugerObj.maximalleistung}
-        //<br />
-        //Min Leistung: {erzeugerObj.minimalleistung}
-        //<br />
-        //Genutzte Leistung: {erzeugerObj.genutzteleistung}
-        //<br />
-        //Verbleibende Stunden: {erzeugerObj.remstunden}
-        //{/* Add more properties as needed */}
-        //</td>
-        //</>
-        //))}
-        //</tr>
-        //</>
-        //))}
-        //</tbody>
-        //</table>
-      }
-      {/*just for export*/}
-      {
-        <table ref={tableRef} className=" hidden">
-          <tbody>
-            {usageMatrix.map((row, rowIndex) => (
-              <>
-                {rowIndex == 0 && (
-                  <>
-                    {row.map((obj, index) => (
-                      <th>{'Erzeuger ' + (index + 1)}</th>
-                    ))}
-                  </>
-                )}
-                <tr key={rowIndex}>
-                  {row.map((erzeugerObj, colIndex) => (
-                    <>
-                      <td
-                        key={colIndex}
-                        className="  border-black border-2 p-2"
-                      >
-                        {erzeugerObj.genutzteleistung}
-                      </td>
-                    </>
+              grid: {
+                color: 'rgba(var(--border-color), 0.1)',
+              },
+              ticks: {
+                color: 'currentColor',
+                callback: function(value) {
+                  return value.toLocaleString('de-DE');
+                }
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                padding: 20,
+                color: 'currentColor',
+                usePointStyle: true,
+                pointStyle: 'circle',
+              },
+            },
+            filler: {
+              propagate: true,
+            },
+            title: {
+              display: true,
+              text: 'Geordnete Jahresdauerlinie Wärme',
+              color: 'currentColor',
+              font: {
+                size: 18,
+                weight: 'bold',
+              },
+              padding: {
+                top: 10,
+                bottom: 30,
+              },
+            },
+            tooltip: {
+              backgroundColor: 'rgb(var(--background-end-rgb))',
+              titleColor: 'currentColor',
+              bodyColor: 'currentColor',
+              borderColor: 'rgb(var(--border-color))',
+              borderWidth: 1,
+              padding: 12,
+              displayColors: true,
+              usePointStyle: true,
+              boxPadding: 6,
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) {
+                    label += ': ';
+                  }
+                  if (context.parsed.y !== null) {
+                    label += context.parsed.y.toLocaleString('de-DE') + ' kWh';
+                  }
+                  return label;
+                }
+              }
+            },
+          },
+        }}
+      />
+
+      {/* Hidden table for export */}
+      <table ref={tableRef} className="hidden">
+        <tbody>
+          {usageMatrix.map((row, rowIndex) => (
+            <>
+              {rowIndex == 0 && (
+                <>
+                  {row.map((obj, index) => (
+                    <th>{'Erzeuger ' + (index + 1)}</th>
                   ))}
-                </tr>
-              </>
-            ))}
-          </tbody>
-        </table>
-      }
+                </>
+              )}
+              <tr key={rowIndex}>
+                {row.map((erzeugerObj, colIndex) => (
+                  <>
+                    <td
+                      key={colIndex}
+                      className="border-black border-2 p-2"
+                    >
+                      {erzeugerObj.genutzteleistung}
+                    </td>
+                  </>
+                ))}
+              </tr>
+            </>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
-};
-
-export default LineChart;
+}
