@@ -15,7 +15,7 @@ import {
   Title,
 } from 'chart.js';
 import Erzeuger from './Erzeuger';
-import XLSX from 'xlsx';
+import * as XLSX from 'xlsx';
 import { useTheme } from '@/context/theme';
 
 ChartJS.register(

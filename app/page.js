@@ -1,6 +1,6 @@
 'use client';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Erzeuger from '@/components/Erzeuger';
 import * as XLSX from 'xlsx';
 import Link from 'next/link';
@@ -33,6 +33,80 @@ export default function Home() {
   const [dataValid, setDataValid] = useState(false);
   const [showNotification, setShowNotification] = useState(true);
   const [usageMatrix, setUsageMatrix] = useState([]);
+  const fileInputRef = useRef(null);
+
+  // Set numDivs based on loaded Erzeuger data
+  useEffect(() => {
+    if (erzeugerValues.length > 0) {
+      setNumDivs(erzeugerValues.length);
+    }
+  }, [erzeugerValues.length]);
+
+  // Function to save Erzeuger values as CSV
+  const saveErzeugerValues = () => {
+    if (erzeugerValues.length === 0) {
+      alert('Keine Erzeuger vorhanden zum Speichern.');
+      return;
+    }
+
+    // Create CSV content
+    let csvContent = 'maximalleistung,minimalleistung,benutzungsstunden\n';
+    
+    erzeugerValues.forEach(erzeuger => {
+      csvContent += `${erzeuger.maximalleistung},${erzeuger.minimalleistung},${erzeuger.benutzungsstunden}\n`;
+    });
+    
+    // Create a blob and download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'erzeuger_values.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Function to load Erzeuger values from CSV
+  const loadErzeugerValues = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const csvText = event.target.result;
+      const lines = csvText.split('\n');
+      
+      // Skip header line and empty lines
+      const dataLines = lines.filter((line, index) => index > 0 && line.trim() !== '');
+      
+      if (dataLines.length === 0) {
+        alert('Keine gültigen Daten in der CSV-Datei gefunden.');
+        return;
+      }
+      
+      // Parse CSV data and create Erzeuger objects
+      const newErzeugerValues = dataLines.map(line => {
+        const [maximalleistung, minimalleistung, benutzungsstunden] = line.split(',');
+        return new ErzeugerObj(
+          maximalleistung,
+          minimalleistung,
+          benutzungsstunden,
+          benutzungsstunden, // remstunden initially equals benutzungsstunden
+          0 // genutzteleistung starts at 0
+        );
+      });
+      
+      setErzeugerValues(newErzeugerValues);
+      setNumDivs(newErzeugerValues.length);
+    };
+    
+    reader.readAsText(file);
+    
+    // Reset file input
+    e.target.value = '';
+  };
 
   useEffect(() => {
     if (showNotification) {
@@ -61,11 +135,25 @@ export default function Home() {
       value = 0;
     }
     setNumDivs(value);
-    const newErzeugerValues = Array.from(
-      { length: value },
-      () => new ErzeugerObj()
-    );
-    setErzeugerValues(newErzeugerValues);
+    
+    // Preserve existing Erzeuger data when adding new ones
+    const currentLength = erzeugerValues.length;
+    if (value > currentLength) {
+      // Add new Erzeuger objects while preserving existing ones
+      const newErzeugerValues = [
+        ...erzeugerValues,
+        ...Array.from(
+          { length: value - currentLength },
+          () => new ErzeugerObj()
+        )
+      ];
+      setErzeugerValues(newErzeugerValues);
+    } else if (value < currentLength) {
+      // Remove excess Erzeuger objects
+      const newErzeugerValues = erzeugerValues.slice(0, value);
+      setErzeugerValues(newErzeugerValues);
+    }
+    // If value === currentLength, no change needed
   };
 
   useEffect(() => {
@@ -264,6 +352,30 @@ export default function Home() {
 
               <div className="modern-card flex-1 min-h-0 overflow-hidden">
                 <div className="h-full overflow-auto">
+                  <div className="flex justify-between items-center mb-3 pb-2 border-b border-slate-200 dark:border-slate-700">
+                    <h3 className="text-base font-medium text-slate-700 dark:text-slate-200">Erzeuger</h3>
+                    <div className="flex space-x-2">
+                      <button
+                        className="text-xs px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded"
+                        onClick={saveErzeugerValues}
+                      >
+                        Speichern
+                      </button>
+                      <button
+                        className="text-xs px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded"
+                        onClick={() => fileInputRef.current.click()}
+                      >
+                        Laden
+                      </button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".csv"
+                        className="hidden"
+                        onChange={loadErzeugerValues}
+                      />
+                    </div>
+                  </div>
                   <div className="space-y-4">
                     {erzeugerValues.map((_, index) => (
                       <Erzeuger
