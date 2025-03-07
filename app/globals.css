@@ -34,6 +34,25 @@ body {
   min-height: 100vh;
 }
 
+/* Ensure text colors are consistent across the app */
+.text-theme {
+  @apply text-slate-700 dark:text-slate-200;
+}
+
+.text-theme-secondary {
+  @apply text-slate-600 dark:text-slate-400;
+}
+
+/* Apply text colors to all headings by default */
+h1, h2, h3, h4, h5, h6 {
+  @apply text-slate-700 dark:text-slate-200;
+}
+
+/* Apply text colors to all paragraphs by default */
+p {
+  @apply text-slate-600 dark:text-slate-400;
+}
+
 .red-button {
   @apply bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors;
 }
@@ -187,4 +206,48 @@ body {
          rounded-lg
          focus:outline-none
          focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400;
+}
+
+/* Custom Scrollbar Styles - Firefox-like appearance */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+/* For Webkit browsers (Chrome, Safari, etc.) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 20px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.7);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+/* Dark mode scrollbar adjustments */
+@media (prefers-color-scheme: dark) {
+  * {
+    scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background-color: rgba(75, 85, 99, 0.5);
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(107, 114, 128, 0.7);
+  }
 }

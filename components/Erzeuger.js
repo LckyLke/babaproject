@@ -29,12 +29,12 @@ function Erzeuger({ num, values, setValues }) {
 
   return (
     <motion.div 
-      className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700"
+      className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      <h3 className="text-base font-medium mb-3 pb-2 border-b border-slate-200 dark:border-slate-700">
+      <h3 className="text-base font-medium mb-3 pb-2 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
         Erzeuger {num}
       </h3>
       <div className="space-y-3">

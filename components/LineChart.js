@@ -16,6 +16,7 @@ import {
 } from 'chart.js';
 import Erzeuger from './Erzeuger';
 import XLSX from 'xlsx';
+import { useTheme } from '@/context/theme';
 
 ChartJS.register(
   LineElement,
@@ -43,6 +44,19 @@ export default function LineChart({ usageMatrix }) {
   const [erzeugerValues] = useErzeugerContext();
   const [importData] = useImportDataContext();
   const tableRef = useRef(null);
+  const { theme } = useTheme();
+  const [chartTextColor, setChartTextColor] = useState('rgba(51, 65, 85, 1)');
+  
+  useEffect(() => {
+    // Update text color based on theme
+    if (typeof window !== 'undefined') {
+      const isDarkMode = 
+        theme === 'dark' || 
+        (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      
+      setChartTextColor(isDarkMode ? 'rgba(241, 245, 249, 1)' : 'rgba(51, 65, 85, 1)');
+    }
+  }, [theme]);
 
   const onDownload = () => {
     const wb = XLSX.utils.table_to_book(tableRef.current);
@@ -56,7 +70,7 @@ export default function LineChart({ usageMatrix }) {
           <svg className="w-16 h-16 mx-auto text-slate-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
-          <h3 className="text-xl font-medium mb-2">Keine Daten verfügbar</h3>
+          <h3 className="text-xl font-medium mb-2 text-slate-700 dark:text-slate-200">Keine Daten verfügbar</h3>
           <p className="text-slate-600 dark:text-slate-400">
             Bitte laden Sie zuerst einen Lastgang hoch und fügen Sie mindestens einen Erzeuger hinzu, um die Jahresdauerlinie zu sehen.
           </p>
@@ -65,44 +79,47 @@ export default function LineChart({ usageMatrix }) {
     );
   }
 
+  // Create datasets with proper labels that will respect the theme color
+  const datasets = [
+    ...erzeugerValues.map((erzeuger, index) => ({
+      label: `Erzeuger ${index + 1}`,
+      data: usageMatrix
+        .filter((_, i) => i % 24 === 0)
+        .map((row) => row[index]?.genutzteleistung || 0),
+      backgroundColor: graphColors[(index + 1) % 8],
+      borderColor: graphColors[(index + 1) % 8],
+      tension: 0.4,
+      fill: 'stack',
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const dataPoint = usageMatrix
+              .filter((_, i) => i % 24 === 0)[context.dataIndex][index];
+            return [
+              `Erzeuger ${index + 1}: ${context.raw.toFixed(2)} kW`,
+              `Verbleibende Stunden: ${dataPoint?.remstunden || 0}`
+            ];
+          }
+        }
+      }
+    })),
+    {
+      label: 'Bedarfslastgang',
+      data: importData.filter((_, i) => i % 24 === 0),
+      backgroundColor: graphColors[0],
+      borderColor: graphColors[0],
+      tension: 0.4,
+      stack: 'bedarf',
+    },
+  ];
+
   return (
     <div className="w-full h-full">
       <Line
         className="lineChart"
         data={{
           labels: Array.from({ length: 365 }, (_, i) => i + 1).map(String),
-          datasets: [
-            ...erzeugerValues.map((erzeuger, index) => ({
-              label: `Erzeuger ${index + 1}`,
-              data: usageMatrix
-                .filter((_, i) => i % 24 === 0)
-                .map((row) => row[index]?.genutzteleistung || 0),
-              backgroundColor: graphColors[(index + 1) % 8],
-              borderColor: graphColors[(index + 1) % 8],
-              tension: 0.4,
-              fill: 'stack',
-              tooltip: {
-                callbacks: {
-                  label: function(context) {
-                    const dataPoint = usageMatrix
-                      .filter((_, i) => i % 24 === 0)[context.dataIndex][index];
-                    return [
-                      `Erzeuger ${index + 1}: ${context.raw.toFixed(2)} kW`,
-                      `Verbleibende Stunden: ${dataPoint?.remstunden || 0}`
-                    ];
-                  }
-                }
-              }
-            })),
-            {
-              label: 'Bedarfslastgang',
-              data: importData.filter((_, i) => i % 24 === 0),
-              backgroundColor: graphColors[0],
-              borderColor: graphColors[0],
-              tension: 0.4,
-              stack: 'bedarf',
-            },
-          ],
+          datasets: datasets,
         }}
         options={{
           responsive: true,
@@ -118,17 +135,17 @@ export default function LineChart({ usageMatrix }) {
               title: {
                 display: true,
                 text: 'Tage',
-                color: 'currentColor',
+                color: chartTextColor,
                 font: {
                   size: 14,
                   weight: 'medium',
                 },
               },
               grid: {
-                color: 'rgba(var(--border-color), 0.1)',
+                color: theme === 'dark' ? 'rgba(71, 85, 105, 0.1)' : 'rgba(203, 213, 225, 0.1)',
               },
               ticks: {
-                color: 'currentColor',
+                color: chartTextColor,
               },
             },
             y: {
@@ -138,17 +155,17 @@ export default function LineChart({ usageMatrix }) {
               title: {
                 display: true,
                 text: 'Leistung',
-                color: 'currentColor',
+                color: chartTextColor,
                 font: {
                   size: 14,
                   weight: 'medium',
                 },
               },
               grid: {
-                color: 'rgba(var(--border-color), 0.1)',
+                color: theme === 'dark' ? 'rgba(71, 85, 105, 0.1)' : 'rgba(203, 213, 225, 0.1)',
               },
               ticks: {
-                color: 'currentColor',
+                color: chartTextColor,
                 callback: function(value) {
                   return value.toLocaleString('de-DE');
                 }
@@ -160,9 +177,13 @@ export default function LineChart({ usageMatrix }) {
               position: 'top',
               labels: {
                 padding: 20,
-                color: 'currentColor',
+                color: chartTextColor,
                 usePointStyle: true,
                 pointStyle: 'circle',
+                font: {
+                  size: 12,
+                  weight: 'normal',
+                },
               },
             },
             filler: {
@@ -171,7 +192,7 @@ export default function LineChart({ usageMatrix }) {
             title: {
               display: true,
               text: 'Geordnete Jahresdauerlinie Wärme',
-              color: 'currentColor',
+              color: chartTextColor,
               font: {
                 size: 18,
                 weight: 'bold',
@@ -182,10 +203,10 @@ export default function LineChart({ usageMatrix }) {
               },
             },
             tooltip: {
-              backgroundColor: 'rgb(var(--background-end-rgb))',
-              titleColor: 'currentColor',
-              bodyColor: 'currentColor',
-              borderColor: 'rgb(var(--border-color))',
+              backgroundColor: theme === 'dark' ? 'rgba(30, 41, 59, 0.9)' : 'rgba(248, 250, 252, 0.9)',
+              titleColor: chartTextColor,
+              bodyColor: chartTextColor,
+              borderColor: theme === 'dark' ? 'rgba(71, 85, 105, 0.5)' : 'rgba(203, 213, 225, 0.5)',
               borderWidth: 1,
               padding: 12,
               displayColors: true,
