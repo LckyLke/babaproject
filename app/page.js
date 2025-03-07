@@ -34,6 +34,13 @@ export default function Home() {
   const [showNotification, setShowNotification] = useState(true);
   const [usageMatrix, setUsageMatrix] = useState([]);
 
+  // Set numDivs based on loaded Erzeuger data
+  useEffect(() => {
+    if (erzeugerValues.length > 0) {
+      setNumDivs(erzeugerValues.length);
+    }
+  }, [erzeugerValues.length]);
+
   useEffect(() => {
     if (showNotification) {
       const timer = setTimeout(() => {
@@ -61,11 +68,25 @@ export default function Home() {
       value = 0;
     }
     setNumDivs(value);
-    const newErzeugerValues = Array.from(
-      { length: value },
-      () => new ErzeugerObj()
-    );
-    setErzeugerValues(newErzeugerValues);
+    
+    // Preserve existing Erzeuger data when adding new ones
+    const currentLength = erzeugerValues.length;
+    if (value > currentLength) {
+      // Add new Erzeuger objects while preserving existing ones
+      const newErzeugerValues = [
+        ...erzeugerValues,
+        ...Array.from(
+          { length: value - currentLength },
+          () => new ErzeugerObj()
+        )
+      ];
+      setErzeugerValues(newErzeugerValues);
+    } else if (value < currentLength) {
+      // Remove excess Erzeuger objects
+      const newErzeugerValues = erzeugerValues.slice(0, value);
+      setErzeugerValues(newErzeugerValues);
+    }
+    // If value === currentLength, no change needed
   };
 
   useEffect(() => {
@@ -280,7 +301,7 @@ export default function Home() {
               <div className="modern-card shrink-0">
                 <button
                   className="modern-button w-full"
-                  onClick={() => setShowGraph((prev) => !prev)}
+                  onClick={() => setShowGraph(prev => !prev)}
                 >
                   {showGraph ? 'Graph ausblenden' : 'Graph einblenden'}
                 </button>
