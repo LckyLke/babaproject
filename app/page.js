@@ -108,6 +108,13 @@ export default function Home() {
     e.target.value = '';
   };
 
+  // Set numDivs based on loaded Erzeuger data
+  useEffect(() => {
+    if (erzeugerValues.length > 0) {
+      setNumDivs(erzeugerValues.length);
+    }
+  }, [erzeugerValues.length]);
+
   useEffect(() => {
     if (showNotification) {
       const timer = setTimeout(() => {
@@ -392,7 +399,7 @@ export default function Home() {
               <div className="modern-card shrink-0">
                 <button
                   className="modern-button w-full"
-                  onClick={() => setShowGraph((prev) => !prev)}
+                  onClick={() => setShowGraph(prev => !prev)}
                 >
                   {showGraph ? 'Graph ausblenden' : 'Graph einblenden'}
                 </button>
