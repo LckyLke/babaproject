@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { ErzeugerProvider } from '@/context/erzeuger';
 import { ImportDataProvider } from '@/context/importdata';
 import { ThemeProvider } from '@/context/theme';
+import { Analytics } from '@vercel/analytics/react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -20,6 +21,7 @@ export default function RootLayout({ children }) {
             <ErzeugerProvider>{children}</ErzeugerProvider>
           </ImportDataProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
