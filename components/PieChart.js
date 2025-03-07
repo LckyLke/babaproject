@@ -12,6 +12,7 @@ import {
   RadialLinearScale,
 } from 'chart.js';
 import { useTheme } from '@/context/theme';
+import { useErzeugerContext } from '@/context/erzeuger';
 
 ChartJS.register(
   ArcElement,
@@ -57,6 +58,9 @@ export default function PieChart({ usageMatrix, importData }) {
   const [graphColors, setGraphColors] = useState(lightModeColors);
   const [missingEnergyColor, setMissingEnergyColor] = useState('#808080');
   
+  // Get erzeuger values from context
+  const [erzeugerValues] = useErzeugerContext();
+  
   useEffect(() => {
     // Update colors based on theme
     if (typeof window !== 'undefined') {
@@ -88,7 +92,7 @@ export default function PieChart({ usageMatrix, importData }) {
   // Prepare data for charts
   const data = {
     labels: [
-      ...erzeugerSums.map((_, index) => `Erzeuger ${index + 1}`),
+      ...erzeugerSums.map((_, index) => erzeugerValues[index]?.name || `Erzeuger ${index + 1}`),
       'Fehlende Arbeit'
     ],
     datasets: [{

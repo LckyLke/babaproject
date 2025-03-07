@@ -33,73 +33,124 @@ export default function Home() {
   const [dataValid, setDataValid] = useState(false);
   const [showNotification, setShowNotification] = useState(true);
   const [usageMatrix, setUsageMatrix] = useState([]);
-  const fileInputRef = useRef(null);
+  const projectFileInputRef = useRef(null);
 
-  // Set numDivs based on loaded Erzeuger data
+  // Load data from localStorage on initial render
   useEffect(() => {
-    if (erzeugerValues.length > 0) {
-      setNumDivs(erzeugerValues.length);
+    const savedProject = localStorage.getItem('babaproject_data');
+    if (savedProject) {
+      try {
+        const { erzeugerData, importedData, usageMatrixData } = JSON.parse(savedProject);
+        
+        if (erzeugerData && erzeugerData.length > 0) {
+          const loadedErzeugerValues = erzeugerData.map(data => {
+            return new ErzeugerObj(
+              data.maximalleistung,
+              data.minimalleistung,
+              data.benutzungsstunden,
+              data.remstunden,
+              data.genutzteleistung,
+              data.name
+            );
+          });
+          setErzeugerValues(loadedErzeugerValues);
+          setNumDivs(loadedErzeugerValues.length);
+        }
+        
+        if (importedData && importedData.length > 0) {
+          setImportData(importedData);
+        }
+        
+        if (usageMatrixData && usageMatrixData.length > 0) {
+          setUsageMatrix(usageMatrixData);
+          setDataValid(true);
+        }
+      } catch (error) {
+        console.error('Error loading saved project:', error);
+      }
     }
-  }, [erzeugerValues.length]);
+  }, []);
 
-  // Function to save Erzeuger values as CSV
-  const saveErzeugerValues = () => {
+  // Save current state to localStorage whenever relevant data changes
+  useEffect(() => {
+    if (erzeugerValues.length > 0 || importData.length > 0) {
+      const projectData = {
+        erzeugerData: erzeugerValues,
+        importedData: importData,
+        usageMatrixData: usageMatrix
+      };
+      localStorage.setItem('babaproject_data', JSON.stringify(projectData));
+    }
+  }, [erzeugerValues, importData, usageMatrix]);
+
+  // Function to save the entire project
+  const saveProject = () => {
     if (erzeugerValues.length === 0) {
       alert('Keine Erzeuger vorhanden zum Speichern.');
       return;
     }
 
-    // Create CSV content
-    let csvContent = 'maximalleistung,minimalleistung,benutzungsstunden\n';
-    
-    erzeugerValues.forEach(erzeuger => {
-      csvContent += `${erzeuger.maximalleistung},${erzeuger.minimalleistung},${erzeuger.benutzungsstunden}\n`;
-    });
-    
-    // Create a blob and download link
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    // Create project data object
+    const projectData = {
+      erzeugerData: erzeugerValues,
+      importedData: importData,
+      usageMatrixData: usageMatrix
+    };
+
+    // Convert to JSON and create blob
+    const jsonData = JSON.stringify(projectData);
+    const blob = new Blob([jsonData], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
+    
+    // Create download link
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', 'erzeuger_values.csv');
+    link.setAttribute('download', 'babaproject_data.json');
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // Function to load Erzeuger values from CSV
-  const loadErzeugerValues = (e) => {
+  // Function to load a project
+  const loadProject = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const csvText = event.target.result;
-      const lines = csvText.split('\n');
-      
-      // Skip header line and empty lines
-      const dataLines = lines.filter((line, index) => index > 0 && line.trim() !== '');
-      
-      if (dataLines.length === 0) {
-        alert('Keine gültigen Daten in der CSV-Datei gefunden.');
-        return;
+      try {
+        const projectData = JSON.parse(event.target.result);
+        
+        if (projectData.erzeugerData && projectData.erzeugerData.length > 0) {
+          const loadedErzeugerValues = projectData.erzeugerData.map(data => {
+            return new ErzeugerObj(
+              data.maximalleistung,
+              data.minimalleistung,
+              data.benutzungsstunden,
+              data.remstunden,
+              data.genutzteleistung,
+              data.name
+            );
+          });
+          setErzeugerValues(loadedErzeugerValues);
+          setNumDivs(loadedErzeugerValues.length);
+        }
+        
+        if (projectData.importedData && projectData.importedData.length > 0) {
+          setImportData(projectData.importedData);
+        }
+        
+        if (projectData.usageMatrixData && projectData.usageMatrixData.length > 0) {
+          setUsageMatrix(projectData.usageMatrixData);
+          setDataValid(true);
+        }
+        
+        alert('Projekt erfolgreich geladen!');
+      } catch (error) {
+        console.error('Error loading project:', error);
+        alert('Fehler beim Laden des Projekts. Bitte überprüfen Sie die Datei.');
       }
-      
-      // Parse CSV data and create Erzeuger objects
-      const newErzeugerValues = dataLines.map(line => {
-        const [maximalleistung, minimalleistung, benutzungsstunden] = line.split(',');
-        return new ErzeugerObj(
-          maximalleistung,
-          minimalleistung,
-          benutzungsstunden,
-          benutzungsstunden, // remstunden initially equals benutzungsstunden
-          0 // genutzteleistung starts at 0
-        );
-      });
-      
-      setErzeugerValues(newErzeugerValues);
-      setNumDivs(newErzeugerValues.length);
     };
     
     reader.readAsText(file);
@@ -110,7 +161,7 @@ export default function Home() {
 
   // Set numDivs based on loaded Erzeuger data
   useEffect(() => {
-    if (erzeugerValues.length > 0) {
+    if (erzeugerValues.length >= 0) {
       setNumDivs(erzeugerValues.length);
     }
   }, [erzeugerValues.length]);
@@ -151,7 +202,11 @@ export default function Home() {
         ...erzeugerValues,
         ...Array.from(
           { length: value - currentLength },
-          () => new ErzeugerObj()
+          (_, index) => {
+            const newErzeuger = new ErzeugerObj();
+            newErzeuger.name = `Erzeuger ${currentLength + index + 1}`;
+            return newErzeuger;
+          }
         )
       ];
       setErzeugerValues(newErzeugerValues);
@@ -357,33 +412,41 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="modern-card flex-1 min-h-0 overflow-hidden">
-                <div className="h-full overflow-auto">
-                  <div className="flex justify-between items-center mb-3 pb-2 border-b border-slate-200 dark:border-slate-700">
-                    <h3 className="text-base font-medium text-slate-700 dark:text-slate-200">Erzeuger</h3>
-                    <div className="flex space-x-2">
-                      <button
-                        className="text-xs px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded"
-                        onClick={saveErzeugerValues}
-                      >
-                        Speichern
-                      </button>
-                      <button
-                        className="text-xs px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded"
-                        onClick={() => fileInputRef.current.click()}
-                      >
-                        Laden
-                      </button>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".csv"
-                        className="hidden"
-                        onChange={loadErzeugerValues}
-                      />
-                    </div>
+              <div className="modern-card flex-1 min-h-0 overflow-hidden flex flex-col">
+                <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-700 shrink-0">
+                  <h3 className="text-base font-medium text-slate-700 dark:text-slate-200">Projekt</h3>
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="text-xs px-2 py-1 bg-purple-500 hover:bg-purple-600 text-white rounded flex items-center"
+                      onClick={saveProject}
+                      title="Gesamtes Projekt speichern"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                      </svg>
+                      Speichern
+                    </button>
+                    <button
+                      className="text-xs px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded flex items-center"
+                      onClick={() => projectFileInputRef.current.click()}
+                      title="Projekt laden"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+                      </svg>
+                      Laden
+                    </button>
+                    <input
+                      ref={projectFileInputRef}
+                      type="file"
+                      accept=".json"
+                      className="hidden"
+                      onChange={loadProject}
+                    />
                   </div>
-                  <div className="space-y-4">
+                </div>
+                <div className="overflow-auto flex-1">
+                  <div className="space-y-4 p-3">
                     {erzeugerValues.map((_, index) => (
                       <Erzeuger
                         key={index}
@@ -448,7 +511,7 @@ export default function Home() {
                     const currentErzeugerSum = usageMatrix.reduce((sum, row) => sum + (row[index]?.genutzteleistung || 0), 0);
                     return (
                       <div key={index} className="modern-card py-2">
-                        <h3 className="text-base font-medium mb-1">Erzeuger {index + 1}</h3>
+                        <h3 className="text-base font-medium mb-1">{erzeuger.name || `Erzeuger ${index + 1}`}</h3>
                         <div className="space-y-1">
                           <p className="text-sm text-slate-600 dark:text-slate-300">
                             Arbeit: {Math.round(currentErzeugerSum || 0).toLocaleString('de-DE')} kWh

@@ -1,5 +1,5 @@
 class ErzeugerObj {
-  constructor(max, min, stunden, remstunden, genutzteleistung) {
+  constructor(max, min, stunden, remstunden, genutzteleistung, name) {
     if (
       max == undefined &&
       min == undefined &&
@@ -14,12 +14,14 @@ class ErzeugerObj {
       this.remstunden = '8760';
       //tatsächlich genutzte Leistung (cond: minimalleistung =< genutzteleistung =< maximalleistung)
       this.genutzteleistung = 0;
+      this.name = 'Erzeuger';
     } else {
       this.maximalleistung = max;
       this.minimalleistung = min;
       this.benutzungsstunden = stunden;
       this.remstunden = remstunden;
       this.genutzteleistung = genutzteleistung;
+      this.name = name || 'Erzeuger';
     }
   }
   // Copy function to create a new instance with the same property values
@@ -29,7 +31,8 @@ class ErzeugerObj {
       this.minimalleistung,
       this.benutzungsstunden,
       this.remstunden,
-      this.genutzteleistung
+      this.genutzteleistung,
+      this.name
     );
   }
   setMaximalLeistung(val) {
@@ -49,6 +52,10 @@ class ErzeugerObj {
   setGenutzteLeistung(val) {
     this.genutzteleistung = val;
   }
+  
+  setName(val) {
+    this.name = val;
+  }
 
   getMaximalLeistung() {
     return parseFloat(this.maximalleistung) || 0;
@@ -60,6 +67,10 @@ class ErzeugerObj {
 
   getBenutzungsStunden() {
     return parseFloat(this.benutzungsstunden) || 0;
+  }
+  
+  getName() {
+    return this.name;
   }
 
   available() {
@@ -81,6 +92,10 @@ class ErzeugerObj {
     }
     if (name == 'stunden') {
       this.setBenutzungsStunden(val);
+      return;
+    }
+    if (name == 'name') {
+      this.setName(val);
       return;
     }
     throw new Error(

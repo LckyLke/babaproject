@@ -82,7 +82,7 @@ export default function LineChart({ usageMatrix }) {
   // Create datasets with proper labels that will respect the theme color
   const datasets = [
     ...erzeugerValues.map((erzeuger, index) => ({
-      label: `Erzeuger ${index + 1}`,
+      label: erzeuger.name || `Erzeuger ${index + 1}`,
       data: usageMatrix
         .filter((_, i) => i % 24 === 0)
         .map((row) => row[index]?.genutzteleistung || 0),
@@ -96,7 +96,7 @@ export default function LineChart({ usageMatrix }) {
             const dataPoint = usageMatrix
               .filter((_, i) => i % 24 === 0)[context.dataIndex][index];
             return [
-              `Erzeuger ${index + 1}: ${context.raw.toFixed(2)} kW`,
+              `${erzeuger.name || `Erzeuger ${index + 1}`}: ${context.raw.toFixed(2)} kW`,
               `Verbleibende Stunden: ${dataPoint?.remstunden || 0}`
             ];
           }
@@ -237,7 +237,7 @@ export default function LineChart({ usageMatrix }) {
               {rowIndex == 0 && (
                 <>
                   {row.map((obj, index) => (
-                    <th>{'Erzeuger ' + (index + 1)}</th>
+                    <th>{erzeugerValues[index]?.name || `Erzeuger ${index + 1}`}</th>
                   ))}
                 </>
               )}
